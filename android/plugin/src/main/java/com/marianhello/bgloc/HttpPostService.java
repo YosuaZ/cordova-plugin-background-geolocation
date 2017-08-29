@@ -15,31 +15,81 @@ import java.util.Map;
 import java.util.Iterator;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.io.OutputStreamWriter;
+import java.util.Random;
 
 public class HttpPostService {
 
-    public static int postJSON(String url, Object json, Map headers) throws IOException {
-        String jsonString = json.toString();
+    public static int postJSON(String url, JSONArray jsons, Map headers) throws IOException {
+
+        JSONArray jsonLocations = new JSONArray();
+        JSONObject location = null;
+        JSONObject coords = null;
+        JSONObject device = null;
+        JSONObject loc = null;
+
+        for (int i=0;i<jsons.length();i++){
+           try {
+               loc = (JSONObject) jsons.get(i);
+                location = new JSONObject();
+                coords = new JSONObject();
+                device = new JSONObject();
+                coords.put("latitude", loc.getDouble("latitude"));
+                coords.put("longitude", loc.getDouble("longitude"));
+                coords.put("accuracy", loc.getDouble("accuracy"));
+                coords.put("speed", 0);
+                coords.put("heading", 0);
+                location.putOpt("coords", coords);
+                location.put("odometer", 0);
+                location.put("timestamp", loc.getLong("time"));
+                location.put("provider", loc.get("provider"));
+               location.put("device", device);
+               location.put("geofence", null);
+               location.put("activity", null);
+               location.put("battery", null);
+               location.put("extras", null);
+               location.put("event", "");
+               location.put("is_moving", true);
+               //location.put("uuid", new Random().nextLong());
+
+               Iterator<Map.Entry<String, String>> it = headers.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, String> pair = it.next();
+                    if (pair.getKey().startsWith("X-DEVICE-")) {
+                        device.put(pair.getKey().replaceAll("X-DEVICE-", pair.getKey()), pair.getValue());
+                    }
+                }
+
+                jsonLocations.put(location);
+
+            } catch (JSONException e) {
+
+            }
+        }
+
+
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setDoOutput(true);
-        conn.setFixedLengthStreamingMode(jsonString.length());
+        conn.setFixedLengthStreamingMode(jsonLocations.length());
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         Iterator<Map.Entry<String, String>> it = headers.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, String> pair = it.next();
-            conn.setRequestProperty(pair.getKey(), pair.getValue());
+            if(!pair.getKey().startsWith("X-DEVICE-")){
+                conn.addRequestProperty(pair.getKey(),pair.getValue());
+            }
         }
 
         OutputStreamWriter os = null;
         try {
             os = new OutputStreamWriter(conn.getOutputStream());
-            os.write(json.toString());
+            os.write(jsonLocations.toString());
 
         } finally {
             if (os != null) {
