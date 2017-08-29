@@ -32,11 +32,12 @@ public class HttpPostService {
         JSONObject coords = null;
         JSONObject device = null;
         JSONObject loc = null;
-
+        JSONObject locationElement = null;
         for (int i=0;i<jsons.length();i++){
            try {
                loc = (JSONObject) jsons.get(i);
                 location = new JSONObject();
+                locationElement = new JSONObject();
                 coords = new JSONObject();
                 device = new JSONObject();
                 coords.put("latitude", loc.getDouble("latitude"));
@@ -48,24 +49,24 @@ public class HttpPostService {
                 location.put("odometer", 0);
                 location.put("timestamp", loc.getLong("time"));
                 location.put("provider", loc.get("provider"));
-               location.put("device", device);
                location.put("geofence", null);
                location.put("activity", null);
                location.put("battery", null);
                location.put("extras", null);
                location.put("event", "");
                location.put("is_moving", true);
-               //location.put("uuid", new Random().nextLong());
+               location.put("uuid", Math.random());
 
                Iterator<Map.Entry<String, String>> it = headers.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry<String, String> pair = it.next();
                     if (pair.getKey().startsWith("X-DEVICE-")) {
-                        device.put(pair.getKey().replaceAll("X-DEVICE-", pair.getKey()), pair.getValue());
+                        device.put(pair.getKey().replaceAll("X-DEVICE-", ""), pair.getValue());
                     }
                 }
-
-                jsonLocations.put(location);
+                locationElement.put("location",location);
+                locationElement.put("device",device);
+                jsonLocations.put(locationElement);
 
             } catch (JSONException e) {
 
