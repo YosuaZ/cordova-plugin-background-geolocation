@@ -1,27 +1,20 @@
 package com.marianhello.bgloc;
 
 import android.os.Build;
-import android.util.Log;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.Map;
-import java.util.Iterator;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.net.URL;
-import java.net.HttpURLConnection;
 import java.io.OutputStreamWriter;
-import java.util.Random;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.Map;
 
 public class HttpPostService {
 
@@ -34,8 +27,8 @@ public class HttpPostService {
         JSONObject loc = null;
         JSONObject locationElement = null;
         for (int i=0;i<jsons.length();i++){
-           try {
-               loc = (JSONObject) jsons.get(i);
+            try {
+                loc = (JSONObject) jsons.get(i);
                 location = new JSONObject();
                 locationElement = new JSONObject();
                 coords = new JSONObject();
@@ -49,15 +42,15 @@ public class HttpPostService {
                 location.put("odometer", 0);
                 location.put("timestamp", loc.getLong("time"));
                 location.put("provider", loc.get("provider"));
-               location.put("geofence", null);
-               location.put("activity", null);
-               location.put("battery", null);
-               location.put("extras", null);
-               location.put("event", "");
-               location.put("is_moving", true);
-               location.put("uuid", Math.random());
+                location.put("geofence", null);
+                location.put("activity", null);
+                location.put("battery", null);
+                location.put("extras", null);
+                location.put("event", "");
+                location.put("is_moving", true);
+                location.put("uuid", Math.random());
 
-               Iterator<Map.Entry<String, String>> it = headers.entrySet().iterator();
+                Iterator<Map.Entry<String, String>> it = headers.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry<String, String> pair = it.next();
                     if (pair.getKey().startsWith("X-DEVICE-")) {
@@ -76,9 +69,9 @@ public class HttpPostService {
 
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setDoOutput(true);
-        conn.setFixedLengthStreamingMode(jsonLocations.length());
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
+
         Iterator<Map.Entry<String, String>> it = headers.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, String> pair = it.next();
@@ -87,16 +80,15 @@ public class HttpPostService {
             }
         }
 
-        OutputStreamWriter os = null;
+        OutputStream os =null;
         try {
-            os = new OutputStreamWriter(conn.getOutputStream());
-            os.write(jsonLocations.toString());
-
-        } finally {
-            if (os != null) {
-                os.flush();
-                os.close();
-            }
+            os = conn.getOutputStream();
+            os.write(jsonLocations.toString().getBytes());
+        }catch (Exception e){
+            return -1;
+        }finally {
+            os.flush();
+            conn.disconnect();
         }
 
         return conn.getResponseCode();
