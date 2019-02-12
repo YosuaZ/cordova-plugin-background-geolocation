@@ -702,6 +702,9 @@ There is nice cordova plugin [cordova-plugin-geofence](https://github.com/cowbel
 
 See [CHANGES.md](/CHANGES.md)
 
+Change version `+` by
+`com.google.android.gms:play-services-location:11.0.1`
+
 ## Licence ##
 
 [Apache License](http://www.apache.org/licenses/LICENSE-2.0)
